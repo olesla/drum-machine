@@ -1,0 +1,15 @@
+<html>
+  <body>
+    {% if error %}
+      <h1>{{ error }}</h1>
+    {% endif %}
+    
+    <form action="/login" method="post">
+      <input name="email" type="text" placeholder="E-mail">
+      <input name="password" type="password" placeholder="Password">
+
+      <button type="submit">Login</button>
+    </form>
+
+  </body>
+</html>
