@@ -1,0 +1,7 @@
+__pycache__
+venv
+
+static/node_modules
+static/dist/bundle.js
+
+.vscode
