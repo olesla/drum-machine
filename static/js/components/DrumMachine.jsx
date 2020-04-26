@@ -6,11 +6,28 @@ const axios = require('axios');
 class DrumMachine extends React.Component {
   constructor(props) {
     super(props);
+    this.play = this.play.bind(this);
+
     this.context = new AudioContext();
     this.kick    = new Kick(this.context);
-    this.snare   = new Snare(this.context);
     this.hihat   = new HiHat(this.context);
+    this.snare   = new Snare(this.context);
+    // this.hihat   = new HiHat(this.context);
     this.now     = this.context.currentTime;
+  }
+
+  render () {
+    return (
+      <div>
+        <button onClick={this.play}>Play</button>
+      </div>
+    );
+  }
+
+  play() {
+    for (let i = 0; i < 8; i++) {
+      this.hihat.trigger(this.now + (i * 0.25));
+    }
 
     this.kick.trigger(this.now);
     this.snare.trigger(this.now + 0.5);
@@ -18,38 +35,17 @@ class DrumMachine extends React.Component {
     this.kick.trigger(this.now + 1.25);
     this.snare.trigger(this.now + 1.5);
   }
-
-  render () {
-    return (
-      <div>
-        TODO: Make a sequencer
-      </div>
-    );
-  }
 }
 
 export default DrumMachine;
 
-
- const sampleLoader = async () => {
-  const response = await axios({
-    method      : 'get',
-    url         : '/dist/samples/hihat.wav',
-    responseType: 'arraybuffer',
-  });
-  console.log(response);
-};
-
 /**
- * Back to our kick drum. A lot of people have researched the acoustics of drums
- * and how they make sound. I’ve included some further reading at the end of
- * this article if you’re interested in this fascinating subject. For
- * two-skinned drums, such as the kick drum, they’ve noticed that the sound
- * starts at a higher frequency — the ‘attack’ phase when the striker hits the
- * skin — and then rapidly falls away to a lower frequency. While this is
- * happening, the volume of the sound also decreases. Once we’ve struck the drum
- * there’s nothing to keep producing sound so it simply decays. Let’s tackle the
- * latter part, the “envelope” of the sound, first.
+ * A lot of people have researched the acoustics of drums and how they make
+ * sound. For two-skinned drums, such as the kick drum, they’ve noticed that
+ * the sound starts at a higher frequency — the ‘attack’ phase when the striker
+ * hits the skin — and then rapidly falls away to a lower frequency. While this
+ * is happening, the volume of the sound also decreases. Once we’ve struck the
+ * drum there’s nothing to keep producing sound so it simply decays.
  */
 class Kick {
   /**
@@ -187,6 +183,19 @@ class HiHat {
    */
   constructor(context) {
     this.context = context;
+    this.buffer  = {};
+    this.load();
+  }
+
+  async load() {
+    const response = await axios({
+      method      : 'get',
+      url         : 'dist/samples/hihat.wav',
+      responseType: 'arraybuffer',
+    });
+    this.buffer = this.context.decodeAudioData(response.data, audioBuffer => {
+      this.buffer = audioBuffer;
+    });
   }
 
   setup() {
