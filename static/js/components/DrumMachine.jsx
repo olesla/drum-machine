@@ -2,38 +2,83 @@
 
 import React, { useCallback } from 'react';
 const axios = require('axios');
+const Tone = require('tone');
 
 class DrumMachine extends React.Component {
   constructor(props) {
     super(props);
-    this.play = this.play.bind(this);
 
     this.context = new AudioContext();
-    this.kick    = new Kick(this.context);
-    this.hihat   = new HiHat(this.context);
-    this.snare   = new Snare(this.context);
-    // this.hihat   = new HiHat(this.context);
     this.now     = this.context.currentTime;
+    this.playing = false;
+    this.play    = this.play.bind(this);
+
+    this.kick   = new Kick(this.context);
+    this.snare  = new Snare(this.context);
+    this.hihat  = new HiHat(this.context);
   }
 
   render () {
     return (
-      <div>
+      <div id='drum-machine'>
+        <div id="sequencer">
+          <div className="instrument" data-instrument='kick'>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+          </div>
+          <div className="instrument" data-instrument='snare'>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+          </div>
+          <div className="instrument" data-instrument='hihat'>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+            <input type="checkbox"/>
+          </div>
+        </div>
         <button onClick={this.play}>Play</button>
       </div>
     );
   }
 
   play() {
-    for (let i = 0; i < 8; i++) {
-      this.hihat.trigger(this.now + (i * 0.25));
-    }
+    if (this.playing)
+      return Tone.Transport.stop();
 
-    this.kick.trigger(this.now);
-    this.snare.trigger(this.now + 0.5);
-    this.kick.trigger(this.now + 1);
-    this.kick.trigger(this.now + 1.25);
-    this.snare.trigger(this.now + 1.5);
+    this.playing = true;
+    let index    = 0;
+    const rows   = document.querySelectorAll('.instrument');
+
+    Tone.Transport.scheduleRepeat(time => {
+      const step = index % 8;
+      for (const row of rows) {
+        const checkbox = row.children[step];
+        if (checkbox.checked) {
+          const instrument = checkbox.parentElement.dataset.instrument;
+          this[instrument].trigger(time);
+        }
+      }
+      index++;
+    }, '8n');
+
+    Tone.Transport.start();
   }
 }
 
@@ -55,6 +100,7 @@ class Kick {
     this.context = context;
     this.gain    = {};
     this.osc     = {};
+    this.name = 'Kick';
   }
 
   setup() {
@@ -90,6 +136,7 @@ class Snare {
    */
   constructor(context) {
     this.context = context;
+    this.name = 'Snare';
   }
 
   /**
@@ -184,6 +231,7 @@ class HiHat {
   constructor(context) {
     this.context = context;
     this.buffer  = {};
+    this.name = 'Hi-Hat';
     this.load();
   }
 
