@@ -8,77 +8,106 @@ class DrumMachine extends React.Component {
   constructor(props) {
     super(props);
 
-    this.context = new AudioContext();
-    this.now     = this.context.currentTime;
-    this.playing = false;
-    this.play    = this.play.bind(this);
+    this.state = {
+      playing: false,
+      subDivision: 8,
+    };
+
+    this.context        = new AudioContext();
+    this.now            = this.context.currentTime;
+
+    this.play           = this.play.bind(this);
+    this.playing        = false;
+    this.repeatId       = null;
 
     this.kick   = new Kick(this.context);
     this.snare  = new Snare(this.context);
     this.hihat  = new HiHat(this.context);
   }
 
-  render () {
+  render() {
+    const columns = [];
+    for (let i = 0; i < this.state.subDivision; i++)
+      columns.push(<SequencerColumn key={i}/>);
+    
     return (
       <div id='drum-machine'>
         <div id="sequencer">
-          <div className="instrument" data-instrument='kick'>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-          </div>
-          <div className="instrument" data-instrument='snare'>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-          </div>
-          <div className="instrument" data-instrument='hihat'>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
-            <input type="checkbox"/>
+          <button onClick={() => this.setState({subDivision: 8})}>8th</button>
+          <button onClick={() => this.setState({subDivision: 16})}>16th</button>
+
+          <div className="flex">
+            <SequencerColumnName/>
+            <div className="column-container">
+              {columns}
+            </div>
           </div>
         </div>
-        <button onClick={this.play}>Play</button>
+      <button onClick={this.play}>{this.state.playing ? 'Stop' : 'Play'}</button>
       </div>
     );
   }
 
   play() {
-    if (this.playing)
-      return Tone.Transport.stop();
+    if (this.state.playing) {
+      this.setState({playing: false});
+      Tone.Transport.clear(this.repeatId);
+      return;
+    }
 
-    this.playing = true;
+    this.setState({playing: true});
     let index    = 0;
-    const rows   = document.querySelectorAll('.instrument');
+    const columns = document.querySelectorAll('.column-container > .column');
 
-    Tone.Transport.scheduleRepeat(time => {
-      const step = index % 8;
-      for (const row of rows) {
-        const checkbox = row.children[step];
-        if (checkbox.checked) {
-          const instrument = checkbox.parentElement.dataset.instrument;
-          this[instrument].trigger(time);
-        }
-      }
+    this.repeatId = Tone.Transport.scheduleRepeat(time => {
+      const step  = index % this.state.subDivision;
+      const boxes = columns[step].children;
+
+      for (const box of boxes)
+        if (box.classList.contains('active'))
+          this[box.dataset.instrument].trigger(time);
+
       index++;
-    }, '8n');
+    }, `${this.state.subDivision}n`);
 
     Tone.Transport.start();
+  }
+}
+
+class SequencerColumnName extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return(
+      <div className="column">
+        <div>Kick</div>
+        <div>Snare</div>
+        <div>Hi-Hat</div>
+      </div>
+    );
+  }
+}
+
+class SequencerColumn extends React.Component {
+  constructor(props) {
+    super(props);
+    this.toggle = this.toggle.bind(this);
+  }
+
+  render() {
+    return(
+      <div className='column'>
+        <div data-instrument='kick'  onClick={this.toggle}>Box</div>
+        <div data-instrument='snare' onClick={this.toggle}>Box</div>
+        <div data-instrument='hihat' onClick={this.toggle}>Box</div>
+      </div>
+    );
+  }
+
+  toggle(event) {
+    event.target.classList.toggle('active');
   }
 }
 
