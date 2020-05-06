@@ -32,18 +32,18 @@ class DrumMachine extends React.Component {
     
     return (
       <div id='drum-machine'>
-        <div id="sequencer">
-          <button onClick={() => this.setState({subDivision: 8})}>8th</button>
-          <button onClick={() => this.setState({subDivision: 16})}>16th</button>
+        <div id='sequencer'>
+          <button className='button' onClick={() => this.setState({subDivision: 8})}>8th</button>
+          <button className='button' onClick={() => this.setState({subDivision: 16})}>16th</button>
 
-          <div className="flex">
+          <div className='flex'>
             <SequencerColumnName/>
-            <div className="column-container">
+            <div className='column-container'>
               {columns}
             </div>
           </div>
         </div>
-      <button onClick={this.play}>{this.state.playing ? 'Stop' : 'Play'}</button>
+      <button className='button' onClick={this.play}>{this.state.playing ? 'Stop' : 'Play'}</button>
       </div>
     );
   }
@@ -73,6 +73,7 @@ class DrumMachine extends React.Component {
     Tone.Transport.start();
   }
 }
+export default DrumMachine;
 
 class SequencerColumnName extends React.Component {
   constructor(props) {
@@ -82,9 +83,9 @@ class SequencerColumnName extends React.Component {
   render() {
     return(
       <div className="column">
-        <div>Kick</div>
-        <div>Snare</div>
-        <div>Hi-Hat</div>
+        <div className='box box-dark'>Kick</div>
+        <div className='box box-dark'>Snare</div>
+        <div className='box box-dark'>Hi-Hat</div>
       </div>
     );
   }
@@ -99,9 +100,9 @@ class SequencerColumn extends React.Component {
   render() {
     return(
       <div className='column'>
-        <div data-instrument='kick'  onClick={this.toggle}>Box</div>
-        <div data-instrument='snare' onClick={this.toggle}>Box</div>
-        <div data-instrument='hihat' onClick={this.toggle}>Box</div>
+        <div className='box' data-instrument='kick'  onClick={this.toggle}>&nbsp;</div>
+        <div className='box' data-instrument='snare' onClick={this.toggle}>&nbsp;</div>
+        <div className='box' data-instrument='hihat' onClick={this.toggle}>&nbsp;</div>
       </div>
     );
   }
@@ -110,8 +111,6 @@ class SequencerColumn extends React.Component {
     event.target.classList.toggle('active');
   }
 }
-
-export default DrumMachine;
 
 /**
  * A lot of people have researched the acoustics of drums and how they make

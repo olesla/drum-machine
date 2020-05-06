@@ -3,5 +3,7 @@ venv
 
 static/node_modules
 static/dist/bundle.js
+static/dist/app.css
+static/dist/app.css.map
 
 .vscode

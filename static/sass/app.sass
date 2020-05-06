@@ -1,0 +1,57 @@
+$dark: #0B0C10
+$dark-light: #1f2833
+$light: #c5c6c7
+$light-blue: #66fcf1
+$dark-blue: #45a29e
+  
+.active
+  background-color: $light-blue
+
+.column-container
+  display: flex
+
+.flex
+  display: flex
+
+body
+  font-family: 'Archivo', sans-serif
+
+body
+  background-color: $dark
+  color: $light
+  padding: 1rem
+
+/* unvisited link */ 
+a:link
+  color: $light-blue
+/* visited link */
+a:visited
+  color: $light-blue
+/* selected link */ 
+a:active
+  color: $light-blue
+
+.button
+  background-color: $dark-light
+  border: 1px solid $dark
+  color: $light
+  padding: 0.5rem 1rem
+  text-align: center
+  text-decoration: none
+  display: inline-block
+  cursor: pointer
+
+.box
+  background-color: $dark-light
+  border: 1px solid $dark
+  color: $light
+  text-align: center
+  padding: 2rem
+  text-decoration: none
+  cursor: pointer
+  &.active
+    background-color: $light
+    color: $dark
+  &.box-dark
+    background-color: $dark
+    color: $light

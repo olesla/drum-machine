@@ -1,12 +1,67 @@
 .active {
-  background-color: green;
+  background-color: #66fcf1;
 }
+
 .column-container {
   display: flex;
 }
-.column {
-  padding: 1rem;
-}
+
 .flex {
   display: flex;
 }
+
+body {
+  font-family: "Archivo", sans-serif;
+}
+
+body {
+  background-color: #0B0C10;
+  color: #c5c6c7;
+  padding: 1rem;
+}
+
+/* unvisited link */ 
+a:link {
+  color: #66fcf1;
+}
+
+/* visited link */
+a:visited {
+  color: #66fcf1;
+}
+
+/* selected link */ 
+a:active {
+  color: #66fcf1;
+}
+
+.button {
+  background-color: #1f2833;
+  border: 1px solid #0B0C10;
+  color: #c5c6c7;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.box {
+  background-color: #1f2833;
+  border: 1px solid #0B0C10;
+  color: #c5c6c7;
+  text-align: center;
+  padding: 2rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.box.active {
+  background-color: #c5c6c7;
+  color: #0B0C10;
+}
+.box.box-dark {
+  background-color: #0B0C10;
+  color: #c5c6c7;
+}
+
+/*# sourceMappingURL=app.css.map */
