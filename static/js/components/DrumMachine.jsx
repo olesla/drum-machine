@@ -8,21 +8,22 @@ class DrumMachine extends React.Component {
   constructor(props) {
     super(props);
 
+    const audioContext = new AudioContext();
     this.state = {
-      playing: false,
-      subDivision: 8,
+      playing      : false,
+      canvasContext: {},
+      audioContext : audioContext,
+      now          : audioContext.currentTime,
+      subDivision  : 8,
+      playing      : false,
+      repeatId     : null,
+      sounds       : {}
     };
 
-    this.context        = new AudioContext();
-    this.now            = this.context.currentTime;
-
-    this.play           = this.play.bind(this);
-    this.playing        = false;
-    this.repeatId       = null;
-
-    this.kick   = new Kick(this.context);
-    this.snare  = new Snare(this.context);
-    this.hihat  = new HiHat(this.context);
+    this.play    = this.play.bind(this);
+    this.canvas  = React.createRef();
+    this.drumset = React.createRef();
+    this.imageCanvas = React.createRef();
   }
 
   render() {
@@ -44,8 +45,30 @@ class DrumMachine extends React.Component {
           </div>
         </div>
       <button className='button' onClick={this.play}>{this.state.playing ? 'Stop' : 'Play'}</button>
+      <img ref={this.drumset} className='hidden' src='/dist/images/drumset.jpg'/>
+      <canvas ref={this.imageCanvas} width='512' height='384'></canvas>
+      <canvas className='drum-canvas' ref={this.canvas} width='512' height='384'></canvas>
       </div>
     );
+  }
+
+  componentDidMount() {
+    const canvasContext = this.canvas.current.getContext('2d');
+    this.setState({
+      canvasContext,
+      sounds : {
+        hihat: new HiHat(this.state.audioContext, canvasContext),
+        kick : new Kick(this.state.audioContext, canvasContext),
+        snare: new Snare(this.state.audioContext, canvasContext),
+      }
+    });
+    
+    // add some event listener to the image
+    // figure out when images have finished loading
+    setTimeout(() => {
+      const context = this.imageCanvas.current.getContext('2d');
+      context.drawImage(this.drumset.current, 0, 0);
+    }, 500);
   }
 
   play() {
@@ -64,8 +87,10 @@ class DrumMachine extends React.Component {
       const boxes = columns[step].children;
 
       for (const box of boxes)
-        if (box.classList.contains('active'))
-          this[box.dataset.instrument].trigger(time);
+        if (box.classList.contains('active')) {
+          this.state.sounds[box.dataset.instrument].trigger(time);
+          //this.updateCanvas(box.dataset.instrument);
+        }
 
       index++;
     }, `${this.state.subDivision}n`);
@@ -122,20 +147,22 @@ class SequencerColumn extends React.Component {
  */
 class Kick {
   /**
-   * @param {Object<AudioContext>} context 
+   * @param {Object<AudioContext>} audioContext 
+   * @param {Object<CanvasRenderingContext2D>} canvasContext
    */
-  constructor(context) {
-    this.context = context;
+  constructor(audioContext, canvasContext) {
+    this.audioContext  = audioContext;
+    this.canvasContext = canvasContext;
     this.gain    = {};
     this.osc     = {};
     this.name = 'Kick';
   }
 
   setup() {
-    this.gain = this.context.createGain();
-    this.osc  = this.context.createOscillator();
+    this.gain = this.audioContext.createGain();
+    this.osc  = this.audioContext.createOscillator();
     this.osc.connect(this.gain);
-    this.gain.connect(this.context.destination);
+    this.gain.connect(this.audioContext.destination);
   }
 
   trigger(time) {
@@ -148,6 +175,9 @@ class Kick {
 
     this.osc.start(time);
     this.osc.stop(time + 0.5);
+    this.canvasContext.fillStyle = 'green';
+    this.canvasContext.fillRect(245,200,50,50);
+    setTimeout(() => this.canvasContext.clearRect(0, 0, 512, 384), 150);
   }
 }
 
@@ -160,10 +190,12 @@ class Kick {
  */
 class Snare {
   /**
-   * @param {Object<AudioContext>} context 
+   * @param {Object<AudioContext>} audioContext
+   * @param {Object<CanvasRenderingContext2D} canvasContext
    */
-  constructor(context) {
-    this.context = context;
+  constructor(audioContext, canvasContext) {
+    this.audioContext = audioContext;
+    this.canvasContext = canvasContext;
     this.name = 'Snare';
   }
 
@@ -182,9 +214,9 @@ class Snare {
    * equal energy at every frequency.
    */
   noiseBuffer() {
-    const bufferSize = this.context.sampleRate;
-    const buffer     = this.context.createBuffer(
-      1, bufferSize, this.context.sampleRate
+    const bufferSize = this.audioContext.sampleRate;
+    const buffer     = this.audioContext.createBuffer(
+      1, bufferSize, this.audioContext.sampleRate
     );
 
     const output = buffer.getChannelData(0);
@@ -199,32 +231,32 @@ class Snare {
    * realistic sounding snare. We can do that using a filter
    */
   setup() {
-    this.noise        = this.context.createBufferSource();
+    this.noise        = this.audioContext.createBufferSource();
     this.noise.buffer = this.noiseBuffer();
 
     // We set the cutoff frequency of the filter at 1000 Hz. This means noise
     // below 1000 Hz will be removed. We also need to shape the amplitude of
     // the noise burst using an envelope, as we did before with the snare drum.
-    const noiseFilter = this.context.createBiquadFilter();
+    const noiseFilter = this.audioContext.createBiquadFilter();
     noiseFilter.type  = 'highpass';
     noiseFilter.frequency.value = 1000;
     this.noise.connect(noiseFilter);
 
-    this.noiseEnvelope = this.context.createGain();
+    this.noiseEnvelope = this.audioContext.createGain();
     noiseFilter.connect(this.noiseEnvelope);
-    this.noiseEnvelope.connect(this.context.destination);
+    this.noiseEnvelope.connect(this.audioContext.destination);
 
     // A short burst of filtered noise on its own doesn’t create a very good
     // sounding snare. Adding a sharp “snap” to the front of the sound helps to
     // make the snare sound more percussive. We can achieve this using an
     // oscillator set to generate a triangle waveform, and again shape that
     // using a GainNode as an envelope.
-    this.osc      = this.context.createOscillator();
+    this.osc      = this.audioContext.createOscillator();
     this.osc.type = 'triangle';
 
-    this.oscEnvelope = this.context.createGain();
+    this.oscEnvelope = this.audioContext.createGain();
     this.osc.connect(this.oscEnvelope);
-    this.oscEnvelope.connect(this.context.destination);
+    this.oscEnvelope.connect(this.audioContext.destination);
   }
 
   trigger(time) {
@@ -240,6 +272,10 @@ class Snare {
 
     this.osc.stop(time + 0.2);
     this.noise.stop(time + 0.2);
+
+    this.canvasContext.fillStyle = 'red';
+    this.canvasContext.fillRect(160,230,50,50);
+    setTimeout(() => this.canvasContext.clearRect(0, 0, 512, 384), 150);
   }
 }
 
@@ -254,12 +290,14 @@ class Snare {
  */
 class HiHat {
   /**
-   * @param {Object<AudioContext>} context 
+   * @param {Object<AudioContext>} audioContext
+   * @param {Object<CanvasRenderingContext2D>} canvasContext
    */
-  constructor(context) {
-    this.context = context;
-    this.buffer  = {};
-    this.name = 'Hi-Hat';
+  constructor(audioContext, canvasContext) {
+    this.audioContext  = audioContext;
+    this.canvasContext = canvasContext;
+    this.buffer = {};
+    this.name   = 'Hi-Hat';
     this.load();
   }
 
@@ -269,19 +307,23 @@ class HiHat {
       url         : 'dist/samples/hihat.wav',
       responseType: 'arraybuffer',
     });
-    this.buffer = this.context.decodeAudioData(response.data, audioBuffer => {
+    this.buffer = this.audioContext.decodeAudioData(response.data, audioBuffer => {
       this.buffer = audioBuffer;
     });
   }
 
   setup() {
-    this.source = this.context.createBufferSource();
+    this.source = this.audioContext.createBufferSource();
     this.source.buffer = this.buffer;
-    this.source.connect(this.context.destination);
+    this.source.connect(this.audioContext.destination);
   }
 
   trigger(time) {
     this.setup();
     this.source.start(time);
+
+    this.canvasContext.fillStyle = 'pink';
+    this.canvasContext.fillRect(40,230,50,50);
+    setTimeout(() => this.canvasContext.clearRect(0, 0, 512, 384), 150);
   }
 }

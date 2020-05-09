@@ -51,7 +51,7 @@ a:active {
   border: 1px solid #0B0C10;
   color: #c5c6c7;
   text-align: center;
-  padding: 2rem;
+  padding: 1.5rem;
   text-decoration: none;
   cursor: pointer;
 }
@@ -62,6 +62,15 @@ a:active {
 .box.box-dark {
   background-color: #0B0C10;
   color: #c5c6c7;
+}
+
+.hidden {
+  display: none;
+}
+
+.drum-canvas {
+  position: relative;
+  left: -512;
 }
 
 /*# sourceMappingURL=app.css.map */
