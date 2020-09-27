@@ -44,10 +44,10 @@ class DrumMachine extends React.Component {
             </div>
           </div>
         </div>
-      <button className='button' onClick={this.play}>{this.state.playing ? 'Stop' : 'Play'}</button>
-      <img ref={this.drumset} className='hidden' src='/dist/images/drumset.jpg'/>
-      <canvas ref={this.imageCanvas} width='512' height='384'></canvas>
-      <canvas className='drum-canvas' ref={this.canvas} width='512' height='384'></canvas>
+        <button className='button' onClick={this.play}>{this.state.playing ? 'Stop' : 'Play'}</button>
+        <img ref={this.drumset} className='hidden' src='/dist/images/drumset.jpg'/>
+        <canvas ref={this.imageCanvas} width='512' height='384'></canvas>
+        <canvas className='drum-canvas' ref={this.canvas} width='512' height='384'></canvas>
       </div>
     );
   }
@@ -147,8 +147,8 @@ class SequencerColumn extends React.Component {
  */
 class Kick {
   /**
-   * @param {Object<AudioContext>} audioContext 
-   * @param {Object<CanvasRenderingContext2D>} canvasContext
+   * @param {AudioContext} audioContext 
+   * @param {CanvasRenderingContext2D} canvasContext
    */
   constructor(audioContext, canvasContext) {
     this.audioContext  = audioContext;
@@ -190,8 +190,8 @@ class Kick {
  */
 class Snare {
   /**
-   * @param {Object<AudioContext>} audioContext
-   * @param {Object<CanvasRenderingContext2D} canvasContext
+   * @param {AudioContext} audioContext
+   * @param {CanvasRenderingContext2D} canvasContext
    */
   constructor(audioContext, canvasContext) {
     this.audioContext = audioContext;
@@ -274,7 +274,11 @@ class Snare {
     this.noise.stop(time + 0.2);
 
     this.canvasContext.fillStyle = 'red';
-    this.canvasContext.fillRect(160,230,50,50);
+    //this.canvasContext.fillRect(160,230,50,50);
+    this.canvasContext.beginPath();
+    this.canvasContext.arc(190, 260, 50, 0, 2 * Math.PI);
+    this.canvasContext.fill();
+    this.canvasContext.stroke(); 
     setTimeout(() => this.canvasContext.clearRect(0, 0, 512, 384), 150);
   }
 }
@@ -290,8 +294,8 @@ class Snare {
  */
 class HiHat {
   /**
-   * @param {Object<AudioContext>} audioContext
-   * @param {Object<CanvasRenderingContext2D>} canvasContext
+   * @param {AudioContext} audioContext
+   * @param {CanvasRenderingContext2D} canvasContext
    */
   constructor(audioContext, canvasContext) {
     this.audioContext  = audioContext;
@@ -323,7 +327,9 @@ class HiHat {
     this.source.start(time);
 
     this.canvasContext.fillStyle = 'pink';
-    this.canvasContext.fillRect(40,230,50,50);
+    // this.canvasContext.fillRect(40,230,50,50);
+    this.canvasContext.arc(40, 230, 50, 0, 2 * Math.PI);
+    this.canvasContext.fill();
     setTimeout(() => this.canvasContext.clearRect(0, 0, 512, 384), 150);
   }
 }
